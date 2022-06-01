@@ -1,7 +1,7 @@
 import React from 'react'
 
-import { Row, FieldContainer, Element, NextElement } from './styles'
-import { NEXTELEMENT, INDEX_DIVIDER, FIELD_SIZE } from './constants'
+import { GameContainer, Row, FieldContainer, Element, NextElement, Preview } from './styles'
+import { NEXTELEMENTS, INDEX_DIVIDER, FIELD_SIZE } from './constants'
 
 export const Field = (): React.ReactElement => {
   const deepClone = (arr: number[][]): number[][] => JSON.parse(JSON.stringify(arr))
@@ -11,10 +11,15 @@ export const Field = (): React.ReactElement => {
 
   const [field, setField] = React.useState<number[][]>(deepClone(initField))
   const [supposedField, setSupposedField] = React.useState<number[][]>(deepClone(initField))
+  const [showPreview, setShowPreview] = React.useState(false)
+  const [nextElement, setNextElement] = React.useState(deepClone(NEXTELEMENTS[9]))
+  const [x, setX] = React.useState(0)
+  const [y, setY] = React.useState(0)
+  const currentRef = React.useRef<HTMLDivElement>(null)
 
   const checkIsAvailable = (currI: number, currJ: number): void => {
-    const nextHeight = NEXTELEMENT.length
-    const nextWidth = NEXTELEMENT[0].length
+    const nextHeight = nextElement.length
+    const nextWidth = nextElement[0].length
     // console.log(`____________${currI}${currJ}____________`)
     let breakCheck = false
     let indexesForHover = []
@@ -25,12 +30,12 @@ export const Field = (): React.ReactElement => {
 
     for (let i = 0; i < nextHeight; i++) {
       for (let j = 0; j < nextWidth; j++) {
-        if (NEXTELEMENT[i][j] + field[currI - (nextHeight - 1) + i][currJ + j] > 1) {
+        if (nextElement[i][j] + field[currI - (nextHeight - 1) + i][currJ + j] > 1) {
           indexesForHover = []
           breakCheck = true
           break
         } else {
-          if (NEXTELEMENT[i][j] === 1) {
+          if (nextElement[i][j] === 1) {
             indexesForHover.push(`${currI - (nextHeight - 1) + i}${INDEX_DIVIDER}${currJ + j}`)
           }
         }
@@ -78,8 +83,14 @@ export const Field = (): React.ReactElement => {
       if (rows.length && rows.some((row) => row === i)) {
         newField[i] = Array.from({ length: FIELD_SIZE }, () => 0)
       }
+      if (cols.length) {
+        for (let j = 0; j < FIELD_SIZE; j++) {
+          if (cols.some((el) => el === j)) {
+            newField[i][j] = 0
+          }
+        }
+      }
     }
-    console.log(rows, cols)
 
     setField(newField)
   }
@@ -88,8 +99,17 @@ export const Field = (): React.ReactElement => {
     setSupposedField(deepClone(field))
   }
 
+  const recordMouse = (e: any): void => {
+    setX(e.clientX)
+    setY(e.clientY - (currentRef?.current?.clientHeight || 0))
+  }
+
   return (
-    <div>
+    <GameContainer
+      onMouseMove={recordMouse}
+      onMouseLeave={() => setShowPreview(false)}
+      onMouseEnter={() => setShowPreview(true)}
+    >
       <FieldContainer>
         <div onMouseOut={handleMouseOut}>
           {field.map((row, i) => (
@@ -101,27 +121,26 @@ export const Field = (): React.ReactElement => {
                   isAvailable={supposedField[i][j] === 2}
                   onMouseOver={() => checkIsAvailable(i, j)}
                   onClick={handleItemClick}
-                >
-                  {i}
-                  {j}
-                </Element>
+                />
               ))}
             </Row>
           ))}
         </div>
       </FieldContainer>
-      <div>
-        {NEXTELEMENT.map((row, i) => (
-          <Row key={`${i}row`}>
-            {row.map((el, j) => (
-              <NextElement key={`${j}element`} isFilled={!!el}>
-                {i}
-                {j}
-              </NextElement>
-            ))}
-          </Row>
-        ))}
-      </div>
-    </div>
+      {showPreview && (
+        <Preview left={x} top={y} ref={currentRef}>
+          {nextElement.map((row, i) => (
+            <Row key={`${i}row`}>
+              {row.map((el, j) => (
+                <NextElement key={`${j}element`} isFilled={!!el}>
+                  {i}
+                  {j}
+                </NextElement>
+              ))}
+            </Row>
+          ))}
+        </Preview>
+      )}
+    </GameContainer>
   )
 }

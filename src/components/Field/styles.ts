@@ -5,6 +5,11 @@ interface IElementStyleProps {
   isFilled: boolean
 }
 
+interface IPreview {
+  top: number
+  left: number
+}
+
 export const Element = styled.div<IElementStyleProps>`
   display: block;
   width: 40px;
@@ -23,6 +28,10 @@ export const NextElement = styled.div<Omit<IElementStyleProps, 'isAvailable'>>`
   background-color: ${({ isFilled }) => (isFilled ? '#738bbb' : '#fbfdff')};
 `
 
+export const GameContainer = styled.div`
+  padding: 20px;
+`
+
 export const FieldContainer = styled.div`
   display: flex;
   justify-content: center;
@@ -31,4 +40,11 @@ export const FieldContainer = styled.div`
 
 export const Row = styled.div`
   display: flex;
+`
+
+export const Preview = styled.div<IPreview>`
+  position: absolute;
+  top: ${({ top }) => `${top + 2}px`};
+  left: ${({ left }) => `${left + 2}px`};
+  opacity: 0.8;
 `
