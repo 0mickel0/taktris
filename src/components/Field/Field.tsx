@@ -36,26 +36,35 @@ export const Field = (): React.ReactElement => {
   const [y, setY] = React.useState(0)
   const currentRef = React.useRef<HTMLDivElement>(null)
 
-  const getNewElements = (): void => {
+  const initNewElements = (): void => {
     const randomNextElements = NEXT_ELEMENTS_ARR.sort(() => 0.5 - Math.random()).slice(
       0,
       NEW_ELEMENTS_AMOUNT,
     )
     setNextElements(randomNextElements)
-    // setNextElement(randomNextElements[0])
     setUsedElements([])
-    setActiveNextElementIndex(0)
   }
 
   React.useEffect(() => {
-    getNewElements()
+    initNewElements()
   }, [])
 
   React.useEffect(() => {
     if (usedElements.length === NEW_ELEMENTS_AMOUNT) {
-      getNewElements()
+      initNewElements()
+    } else {
+      setActiveNextElementIndex(getNextElementIndex())
     }
   }, [usedElements])
+
+  const getNextElementIndex = (): number => {
+    for (let i = 0; i < NEW_ELEMENTS_AMOUNT; i++) {
+      if (usedElements.every((el) => el !== i)) {
+        return i
+      }
+    }
+    return 0
+  }
 
   const checkIsAvailable = (currI: number, currJ: number): void => {
     const nextElement = nextElements[activeNextElementIndex]
@@ -136,7 +145,6 @@ export const Field = (): React.ReactElement => {
       setSupposedField(deepClone(newField))
       setUsedElements([...usedElements, activeNextElementIndex])
       setField(newField)
-      setActiveNextElementIndex(activeNextElementIndex + 1)
     }
   }
 
@@ -144,7 +152,7 @@ export const Field = (): React.ReactElement => {
     setSupposedField(deepClone(field))
   }
 
-  const recordMouse = (e: any): void => {
+  const handleMouseMove = (e: any): void => {
     setX(e.clientX)
     setY(e.clientY - (currentRef?.current?.clientHeight || 0))
   }
@@ -153,7 +161,7 @@ export const Field = (): React.ReactElement => {
     <GameContainer>
       <FieldContainer>
         <div
-          onMouseMove={recordMouse}
+          onMouseMove={handleMouseMove}
           onMouseOut={handleMouseOut}
           onMouseLeave={() => setPreviewShown(false)}
           onMouseEnter={() => setPreviewShown(true)}
