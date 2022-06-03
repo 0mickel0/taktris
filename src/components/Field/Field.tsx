@@ -1,26 +1,72 @@
 import React from 'react'
 
-import { GameContainer, Row, FieldContainer, Element, NextElement, Preview } from './styles'
-import { NEXTELEMENTS, INDEX_DIVIDER, FIELD_SIZE } from './constants'
+import {
+  GameContainer,
+  Row,
+  FieldContainer,
+  Element,
+  NextElement,
+  Preview,
+  NextElements,
+  NextElementContainer,
+} from './styles'
+import {
+  NEXT_ELEMENTS_ARR,
+  INDEX_DIVIDER,
+  FIELD_SIZE,
+  NEW_ELEMENTS_AMOUNT,
+  FIELD_HOVERED_VALUE,
+  FIELD_FILLED_VALUE,
+  FIELD_EMPTY_VALUE,
+} from './constants'
 
 export const Field = (): React.ReactElement => {
   const deepClone = (arr: number[][]): number[][] => JSON.parse(JSON.stringify(arr))
   const initField = Array.from({ length: FIELD_SIZE }, () =>
-    Array.from({ length: FIELD_SIZE }, () => 0),
+    Array.from({ length: FIELD_SIZE }, () => FIELD_EMPTY_VALUE),
   )
 
   const [field, setField] = React.useState<number[][]>(deepClone(initField))
   const [supposedField, setSupposedField] = React.useState<number[][]>(deepClone(initField))
-  const [showPreview, setShowPreview] = React.useState(false)
-  const [nextElement, setNextElement] = React.useState(deepClone(NEXTELEMENTS[9]))
+  const [isPreviewShown, setPreviewShown] = React.useState(false)
+  const [nextElement, setNextElement] = React.useState<number[][]>([[1]])
+  const [nextElements, setNextElements] = React.useState<number[][][]>([])
+  const [nextElementIndex, setNextElementIndex] = React.useState(0)
+  const [usedElements, setUsedElements] = React.useState<number[]>([])
   const [x, setX] = React.useState(0)
   const [y, setY] = React.useState(0)
   const currentRef = React.useRef<HTMLDivElement>(null)
 
+  const getNewElements = (): void => {
+    const randomNextElements = NEXT_ELEMENTS_ARR.sort(() => 0.5 - Math.random()).slice(
+      0,
+      NEW_ELEMENTS_AMOUNT,
+    )
+    setNextElements(randomNextElements)
+    setNextElement(randomNextElements[0])
+    setUsedElements([])
+    setNextElementIndex(0)
+  }
+
+  React.useEffect(() => {
+    getNewElements()
+  }, [])
+
+  React.useEffect(() => {
+    if (usedElements.length === NEW_ELEMENTS_AMOUNT) {
+      getNewElements()
+    }
+  }, [usedElements])
+
+  React.useEffect(() => {
+    if (nextElements[nextElementIndex]) {
+      setNextElement(deepClone(nextElements[nextElementIndex]))
+    }
+  }, [nextElementIndex, nextElements])
+
   const checkIsAvailable = (currI: number, currJ: number): void => {
     const nextHeight = nextElement.length
     const nextWidth = nextElement[0].length
-    // console.log(`____________${currI}${currJ}____________`)
     let breakCheck = false
     let indexesForHover = []
 
@@ -35,7 +81,7 @@ export const Field = (): React.ReactElement => {
           breakCheck = true
           break
         } else {
-          if (nextElement[i][j] === 1) {
+          if (nextElement[i][j] === FIELD_FILLED_VALUE) {
             indexesForHover.push(`${currI - (nextHeight - 1) + i}${INDEX_DIVIDER}${currJ + j}`)
           }
         }
@@ -58,7 +104,7 @@ export const Field = (): React.ReactElement => {
   const getClearableRows = (arr: number[][]): number[] => {
     const rows = []
     for (let i = 0; i < FIELD_SIZE; i++) {
-      if (arr[i].every((el) => el === 1)) {
+      if (arr[i].every((el) => el === FIELD_FILLED_VALUE)) {
         rows.push(i)
       }
     }
@@ -66,33 +112,38 @@ export const Field = (): React.ReactElement => {
   }
 
   const handleItemClick = (): void => {
-    const newField = deepClone(field)
-    for (let i = 0; i < FIELD_SIZE; i++) {
-      for (let j = 0; j < FIELD_SIZE; j++) {
-        if (supposedField[i][j] === 2) {
-          newField[i][j] = 1
-        }
-      }
-    }
-
-    const rows = getClearableRows(newField)
-    const cols = getClearableRows(
-      newField[0].map((val, index) => newField.map((row) => row[index]).reverse()),
-    )
-    for (let i = 0; i < FIELD_SIZE; i++) {
-      if (rows.length && rows.some((row) => row === i)) {
-        newField[i] = Array.from({ length: FIELD_SIZE }, () => 0)
-      }
-      if (cols.length) {
+    if (supposedField.some((el) => el.some((el) => el === FIELD_HOVERED_VALUE))) {
+      const newField = deepClone(field)
+      for (let i = 0; i < FIELD_SIZE; i++) {
         for (let j = 0; j < FIELD_SIZE; j++) {
-          if (cols.some((el) => el === j)) {
-            newField[i][j] = 0
+          if (supposedField[i][j] === FIELD_HOVERED_VALUE) {
+            newField[i][j] = FIELD_FILLED_VALUE
           }
         }
       }
-    }
 
-    setField(newField)
+      const rows = getClearableRows(newField)
+      const cols = getClearableRows(
+        newField[0].map((val, index) => newField.map((row) => row[index]).reverse()),
+      )
+      for (let i = 0; i < FIELD_SIZE; i++) {
+        if (rows.length && rows.some((row) => row === i)) {
+          newField[i] = Array.from({ length: FIELD_SIZE }, () => FIELD_EMPTY_VALUE)
+        }
+        if (cols.length) {
+          for (let j = 0; j < FIELD_SIZE; j++) {
+            if (cols.some((el) => el === j)) {
+              newField[i][j] = FIELD_EMPTY_VALUE
+            }
+          }
+        }
+      }
+
+      setSupposedField(deepClone(newField))
+      setUsedElements([...usedElements, nextElementIndex])
+      setField(newField)
+      setNextElementIndex(nextElementIndex + 1)
+    }
   }
 
   const handleMouseOut = (): void => {
@@ -105,20 +156,21 @@ export const Field = (): React.ReactElement => {
   }
 
   return (
-    <GameContainer
-      onMouseMove={recordMouse}
-      onMouseLeave={() => setShowPreview(false)}
-      onMouseEnter={() => setShowPreview(true)}
-    >
+    <GameContainer>
       <FieldContainer>
-        <div onMouseOut={handleMouseOut}>
+        <div
+          onMouseMove={recordMouse}
+          onMouseOut={handleMouseOut}
+          onMouseLeave={() => setPreviewShown(false)}
+          onMouseEnter={() => setPreviewShown(true)}
+        >
           {field.map((row, i) => (
             <Row key={`${i}row`}>
               {row.map((el, j) => (
                 <Element
                   key={`${j}element`}
-                  isFilled={el === 1}
-                  isAvailable={supposedField[i][j] === 2}
+                  isFilled={el === FIELD_FILLED_VALUE}
+                  isAvailable={supposedField[i][j] === FIELD_HOVERED_VALUE}
                   onMouseOver={() => checkIsAvailable(i, j)}
                   onClick={handleItemClick}
                 />
@@ -127,20 +179,41 @@ export const Field = (): React.ReactElement => {
           ))}
         </div>
       </FieldContainer>
-      {showPreview && (
-        <Preview left={x} top={y} ref={currentRef}>
+
+      {nextElement && (
+        <Preview left={x} top={y} ref={currentRef} isHidden={!isPreviewShown}>
           {nextElement.map((row, i) => (
             <Row key={`${i}row`}>
               {row.map((el, j) => (
-                <NextElement key={`${j}element`} isFilled={!!el}>
-                  {i}
-                  {j}
-                </NextElement>
+                <NextElement key={`${j}element`} isFilled={!!el} />
               ))}
             </Row>
           ))}
         </Preview>
       )}
+
+      <NextElements>
+        {JSON.stringify(usedElements)}
+        {nextElements.map((elementContainer, elementContainerIndex) => (
+          <NextElementContainer
+            key={`${elementContainerIndex}nextElementContainer`}
+            onClick={() => setNextElementIndex(elementContainerIndex)}
+          >
+            {elementContainer.map((row, elementI) => (
+              <Row key={`${elementI}row`}>
+                {row.map((el, j) => (
+                  <NextElement
+                    key={`${j}element`}
+                    isFilled={!!el}
+                    isActive={nextElementIndex === elementContainerIndex}
+                    isDisabled={usedElements.some((el) => el === elementContainerIndex)}
+                  />
+                ))}
+              </Row>
+            ))}
+          </NextElementContainer>
+        ))}
+      </NextElements>
     </GameContainer>
   )
 }
