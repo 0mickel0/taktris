@@ -29,9 +29,8 @@ export const Field = (): React.ReactElement => {
   const [field, setField] = React.useState<number[][]>(deepClone(initField))
   const [supposedField, setSupposedField] = React.useState<number[][]>(deepClone(initField))
   const [isPreviewShown, setPreviewShown] = React.useState(false)
-  const [nextElement, setNextElement] = React.useState<number[][]>([[1]])
   const [nextElements, setNextElements] = React.useState<number[][][]>([])
-  const [nextElementIndex, setNextElementIndex] = React.useState(0)
+  const [activeNextElementIndex, setActiveNextElementIndex] = React.useState(0)
   const [usedElements, setUsedElements] = React.useState<number[]>([])
   const [x, setX] = React.useState(0)
   const [y, setY] = React.useState(0)
@@ -43,9 +42,9 @@ export const Field = (): React.ReactElement => {
       NEW_ELEMENTS_AMOUNT,
     )
     setNextElements(randomNextElements)
-    setNextElement(randomNextElements[0])
+    // setNextElement(randomNextElements[0])
     setUsedElements([])
-    setNextElementIndex(0)
+    setActiveNextElementIndex(0)
   }
 
   React.useEffect(() => {
@@ -58,13 +57,8 @@ export const Field = (): React.ReactElement => {
     }
   }, [usedElements])
 
-  React.useEffect(() => {
-    if (nextElements[nextElementIndex]) {
-      setNextElement(deepClone(nextElements[nextElementIndex]))
-    }
-  }, [nextElementIndex, nextElements])
-
   const checkIsAvailable = (currI: number, currJ: number): void => {
+    const nextElement = nextElements[activeNextElementIndex]
     const nextHeight = nextElement.length
     const nextWidth = nextElement[0].length
     let breakCheck = false
@@ -140,9 +134,9 @@ export const Field = (): React.ReactElement => {
       }
 
       setSupposedField(deepClone(newField))
-      setUsedElements([...usedElements, nextElementIndex])
+      setUsedElements([...usedElements, activeNextElementIndex])
       setField(newField)
-      setNextElementIndex(nextElementIndex + 1)
+      setActiveNextElementIndex(activeNextElementIndex + 1)
     }
   }
 
@@ -180,9 +174,9 @@ export const Field = (): React.ReactElement => {
         </div>
       </FieldContainer>
 
-      {nextElement && (
+      {nextElements[activeNextElementIndex] && (
         <Preview left={x} top={y} ref={currentRef} isHidden={!isPreviewShown}>
-          {nextElement.map((row, i) => (
+          {nextElements[activeNextElementIndex].map((row, i) => (
             <Row key={`${i}row`}>
               {row.map((el, j) => (
                 <NextElement key={`${j}element`} isFilled={!!el} />
@@ -197,7 +191,7 @@ export const Field = (): React.ReactElement => {
         {nextElements.map((elementContainer, elementContainerIndex) => (
           <NextElementContainer
             key={`${elementContainerIndex}nextElementContainer`}
-            onClick={() => setNextElementIndex(elementContainerIndex)}
+            onClick={() => setActiveNextElementIndex(elementContainerIndex)}
           >
             {elementContainer.map((row, elementI) => (
               <Row key={`${elementI}row`}>
@@ -205,7 +199,7 @@ export const Field = (): React.ReactElement => {
                   <NextElement
                     key={`${j}element`}
                     isFilled={!!el}
-                    isActive={nextElementIndex === elementContainerIndex}
+                    isActive={activeNextElementIndex === elementContainerIndex}
                     isDisabled={usedElements.some((el) => el === elementContainerIndex)}
                   />
                 ))}
