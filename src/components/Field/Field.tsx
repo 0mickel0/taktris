@@ -36,15 +36,6 @@ export const Field = (): React.ReactElement => {
   const [y, setY] = React.useState(0)
   const currentRef = React.useRef<HTMLDivElement>(null)
 
-  const initNewElements = (): void => {
-    const randomNextElements = NEXT_ELEMENTS_ARR.sort(() => 0.5 - Math.random()).slice(
-      0,
-      NEW_ELEMENTS_AMOUNT,
-    )
-    setNextElements(randomNextElements)
-    setUsedElements([])
-  }
-
   React.useEffect(() => {
     initNewElements()
   }, [])
@@ -56,6 +47,15 @@ export const Field = (): React.ReactElement => {
       setActiveNextElementIndex(getNextElementIndex())
     }
   }, [usedElements])
+
+  const initNewElements = (): void => {
+    const randomNextElements = NEXT_ELEMENTS_ARR.sort(() => 0.5 - Math.random()).slice(
+      0,
+      NEW_ELEMENTS_AMOUNT,
+    )
+    setNextElements(randomNextElements)
+    setUsedElements([])
+  }
 
   const getNextElementIndex = (): number => {
     for (let i = 0; i < NEW_ELEMENTS_AMOUNT; i++) {
@@ -157,11 +157,17 @@ export const Field = (): React.ReactElement => {
     setY(e.clientY - (currentRef?.current?.clientHeight || 0))
   }
 
+  const handleNextElementSelect = (index: number): void => {
+    if (usedElements.some((el) => el === index)) {
+      return
+    }
+    setActiveNextElementIndex(index)
+  }
+
   return (
-    <GameContainer>
+    <GameContainer onMouseMove={handleMouseMove}>
       <FieldContainer>
         <div
-          onMouseMove={handleMouseMove}
           onMouseOut={handleMouseOut}
           onMouseLeave={() => setPreviewShown(false)}
           onMouseEnter={() => setPreviewShown(true)}
@@ -199,7 +205,7 @@ export const Field = (): React.ReactElement => {
         {nextElements.map((elementContainer, elementContainerIndex) => (
           <NextElementContainer
             key={`${elementContainerIndex}nextElementContainer`}
-            onClick={() => setActiveNextElementIndex(elementContainerIndex)}
+            onClick={() => handleNextElementSelect(elementContainerIndex)}
           >
             {elementContainer.map((row, elementI) => (
               <Row key={`${elementI}row`}>
