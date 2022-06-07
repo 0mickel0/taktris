@@ -26,9 +26,10 @@ export const Field = (): React.ReactElement => {
     Array.from({ length: FIELD_SIZE }, () => FIELD_EMPTY_VALUE),
   )
 
-  const [field, setField] = React.useState<number[][]>(deepClone(initField))
+  const [field, setField] = React.useState<number[][]>([])
   const [supposedField, setSupposedField] = React.useState<number[][]>(deepClone(initField))
   const [isPreviewShown, setPreviewShown] = React.useState(false)
+  const [isGameEnd, setIsGameEnd] = React.useState(false)
   const [nextElements, setNextElements] = React.useState<number[][][]>([])
   const [activeNextElementIndex, setActiveNextElementIndex] = React.useState(0)
   const [usedElements, setUsedElements] = React.useState<number[]>([])
@@ -37,24 +38,21 @@ export const Field = (): React.ReactElement => {
   const currentRef = React.useRef<HTMLDivElement>(null)
 
   React.useEffect(() => {
-    initNewElements()
+    resetGame()
   }, [])
 
   React.useEffect(() => {
+    setIsGameEnd(checkIsGameEnd())
     if (usedElements.length === NEW_ELEMENTS_AMOUNT) {
-      initNewElements()
+      initNewNextElements()
     } else {
       setActiveNextElementIndex(getNextElementIndex())
     }
   }, [usedElements])
 
-  const initNewElements = (): void => {
-    const randomNextElements = NEXT_ELEMENTS_ARR.sort(() => 0.5 - Math.random()).slice(
-      0,
-      NEW_ELEMENTS_AMOUNT,
-    )
-    setNextElements(randomNextElements)
-    setUsedElements([])
+  const resetGame = (): void => {
+    setField(deepClone(initField))
+    initNewNextElements()
   }
 
   const getNextElementIndex = (): number => {
@@ -66,15 +64,43 @@ export const Field = (): React.ReactElement => {
     return 0
   }
 
-  const checkIsAvailable = (currI: number, currJ: number): void => {
-    const nextElement = nextElements[activeNextElementIndex]
+  const checkIsGameEnd = (): boolean => {
+    let isEnded = false
+    for (let elN = 0; elN < nextElements.length; elN++) {
+      if (usedElements.every((el) => el !== elN)) {
+        const checkedElement = nextElements[elN]
+        for (let i = 0; i < FIELD_SIZE; i++) {
+          for (let j = 0; j < FIELD_SIZE; j++) {
+            if (findIndexesForHover(i, j, checkedElement).length > 0) {
+              isEnded = false
+              return false
+            } else {
+              isEnded = true
+            }
+          }
+        }
+      }
+    }
+    return isEnded
+  }
+
+  const initNewNextElements = (): void => {
+    const randomNextElements = NEXT_ELEMENTS_ARR.sort(() => 0.5 - Math.random()).slice(
+      0,
+      NEW_ELEMENTS_AMOUNT,
+    )
+    setNextElements(randomNextElements)
+    setUsedElements([])
+  }
+
+  const findIndexesForHover = (currI: number, currJ: number, nextElement: number[][]): string[] => {
     const nextHeight = nextElement.length
     const nextWidth = nextElement[0].length
     let breakCheck = false
-    let indexesForHover = []
+    let indexesForHover: string[] = []
 
     if (currI - nextHeight + 1 < 0 || currJ + nextWidth > FIELD_SIZE) {
-      return
+      return indexesForHover
     }
 
     for (let i = 0; i < nextHeight; i++) {
@@ -91,6 +117,13 @@ export const Field = (): React.ReactElement => {
       }
       if (breakCheck) break
     }
+
+    return indexesForHover
+  }
+
+  const checkIsAvailable = (currI: number, currJ: number): void => {
+    const nextElement = nextElements[activeNextElementIndex]
+    const indexesForHover = findIndexesForHover(currI, currJ, nextElement)
 
     if (indexesForHover.length > 0) {
       const newSupposed = deepClone(field)
@@ -166,6 +199,12 @@ export const Field = (): React.ReactElement => {
 
   return (
     <GameContainer onMouseMove={handleMouseMove}>
+      {isGameEnd && (
+        <div>
+          <h1>GAME OVER</h1> <span onClick={resetGame}>start new</span>
+        </div>
+      )}
+
       <FieldContainer>
         <div
           onMouseOut={handleMouseOut}
@@ -201,7 +240,6 @@ export const Field = (): React.ReactElement => {
       )}
 
       <NextElements>
-        {JSON.stringify(usedElements)}
         {nextElements.map((elementContainer, elementContainerIndex) => (
           <NextElementContainer
             key={`${elementContainerIndex}nextElementContainer`}

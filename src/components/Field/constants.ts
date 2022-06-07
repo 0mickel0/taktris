@@ -5,6 +5,18 @@ export const INDEX_DIVIDER = '-'
 export const FIELD_SIZE = 9
 export const NEW_ELEMENTS_AMOUNT = 3
 
+export const TEST_FIELD = [
+  [0, 1, 0, 1, 0, 1, 0, 1, 0],
+  [1, 0, 1, 0, 1, 0, 1, 0, 1],
+  [0, 1, 0, 1, 0, 1, 0, 1, 0],
+  [1, 0, 1, 0, 1, 0, 1, 0, 1],
+  [0, 1, 0, 1, 0, 1, 0, 1, 0],
+  [1, 0, 1, 0, 1, 0, 1, 0, 1],
+  [0, 1, 0, 1, 0, 1, 0, 1, 0],
+  [1, 0, 1, 0, 1, 0, 0, 0, 0],
+  [0, 1, 0, 1, 0, 1, 0, 0, 0],
+]
+
 const EL0 = [[1]]
 
 const EL1 = [[1, 1]]
