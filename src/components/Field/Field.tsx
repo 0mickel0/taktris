@@ -29,10 +29,11 @@ export const Field = (): React.ReactElement => {
   const [field, setField] = React.useState<number[][]>([])
   const [supposedField, setSupposedField] = React.useState<number[][]>(deepClone(initField))
   const [isPreviewShown, setPreviewShown] = React.useState(false)
+  const [score, setScore] = React.useState(0)
   const [isGameEnd, setIsGameEnd] = React.useState(false)
-  const [nextElements, setNextElements] = React.useState<number[][][]>([])
-  const [activeNextElementIndex, setActiveNextElementIndex] = React.useState(0)
-  const [usedElements, setUsedElements] = React.useState<number[]>([])
+  const [nextFigures, setNextFigures] = React.useState<number[][][]>([])
+  const [activeNextFigureIndex, setActiveNextFigureIndex] = React.useState(0)
+  const [usedFigures, setUsedFigures] = React.useState<number[]>([])
   const [x, setX] = React.useState(0)
   const [y, setY] = React.useState(0)
   const currentRef = React.useRef<HTMLDivElement>(null)
@@ -43,21 +44,24 @@ export const Field = (): React.ReactElement => {
 
   React.useEffect(() => {
     setIsGameEnd(checkIsGameEnd())
-    if (usedElements.length === NEW_ELEMENTS_AMOUNT) {
-      initNewNextElements()
+    if (usedFigures.length === NEW_ELEMENTS_AMOUNT) {
+      initNewNextFigures()
     } else {
-      setActiveNextElementIndex(getNextElementIndex())
+      setActiveNextFigureIndex(getNextFigureIndex())
     }
-  }, [usedElements])
+  }, [usedFigures])
 
   const resetGame = (): void => {
     setField(deepClone(initField))
-    initNewNextElements()
+    initNewNextFigures()
   }
 
-  const getNextElementIndex = (): number => {
+  const getElementPoints = (figure: number[][]): number =>
+    figure.flatMap((el) => el).filter((el) => el === FIELD_FILLED_VALUE).length
+
+  const getNextFigureIndex = (): number => {
     for (let i = 0; i < NEW_ELEMENTS_AMOUNT; i++) {
-      if (usedElements.every((el) => el !== i)) {
+      if (usedFigures.every((el) => el !== i)) {
         return i
       }
     }
@@ -66,9 +70,9 @@ export const Field = (): React.ReactElement => {
 
   const checkIsGameEnd = (): boolean => {
     let isEnded = false
-    for (let elN = 0; elN < nextElements.length; elN++) {
-      if (usedElements.every((el) => el !== elN)) {
-        const checkedElement = nextElements[elN]
+    for (let elN = 0; elN < nextFigures.length; elN++) {
+      if (usedFigures.every((el) => el !== elN)) {
+        const checkedElement = nextFigures[elN]
         for (let i = 0; i < FIELD_SIZE; i++) {
           for (let j = 0; j < FIELD_SIZE; j++) {
             if (findIndexesForHover(i, j, checkedElement).length > 0) {
@@ -84,13 +88,13 @@ export const Field = (): React.ReactElement => {
     return isEnded
   }
 
-  const initNewNextElements = (): void => {
-    const randomNextElements = NEXT_ELEMENTS_ARR.sort(() => 0.5 - Math.random()).slice(
+  const initNewNextFigures = (): void => {
+    const randomNextFigures = NEXT_ELEMENTS_ARR.sort(() => 0.5 - Math.random()).slice(
       0,
       NEW_ELEMENTS_AMOUNT,
     )
-    setNextElements(randomNextElements)
-    setUsedElements([])
+    setNextFigures(randomNextFigures)
+    setUsedFigures([])
   }
 
   const findIndexesForHover = (currI: number, currJ: number, nextElement: number[][]): string[] => {
@@ -122,7 +126,7 @@ export const Field = (): React.ReactElement => {
   }
 
   const checkIsAvailable = (currI: number, currJ: number): void => {
-    const nextElement = nextElements[activeNextElementIndex]
+    const nextElement = nextFigures[activeNextFigureIndex]
     const indexesForHover = findIndexesForHover(currI, currJ, nextElement)
 
     if (indexesForHover.length > 0) {
@@ -149,6 +153,7 @@ export const Field = (): React.ReactElement => {
 
   const handleItemClick = (): void => {
     if (supposedField.some((el) => el.some((el) => el === FIELD_HOVERED_VALUE))) {
+      let newPoints = getElementPoints(nextFigures[activeNextFigureIndex])
       const newField = deepClone(field)
       for (let i = 0; i < FIELD_SIZE; i++) {
         for (let j = 0; j < FIELD_SIZE; j++) {
@@ -174,9 +179,11 @@ export const Field = (): React.ReactElement => {
           }
         }
       }
-
+      newPoints += rows.length * FIELD_SIZE
+      newPoints += cols.length * FIELD_SIZE
+      setScore(newPoints + score)
       setSupposedField(deepClone(newField))
-      setUsedElements([...usedElements, activeNextElementIndex])
+      setUsedFigures([...usedFigures, activeNextFigureIndex])
       setField(newField)
     }
   }
@@ -191,10 +198,10 @@ export const Field = (): React.ReactElement => {
   }
 
   const handleNextElementSelect = (index: number): void => {
-    if (usedElements.some((el) => el === index)) {
+    if (usedFigures.some((el) => el === index)) {
       return
     }
-    setActiveNextElementIndex(index)
+    setActiveNextFigureIndex(index)
   }
 
   return (
@@ -227,9 +234,9 @@ export const Field = (): React.ReactElement => {
         </div>
       </FieldContainer>
 
-      {nextElements[activeNextElementIndex] && (
+      {nextFigures[activeNextFigureIndex] && (
         <Preview left={x} top={y} ref={currentRef} isHidden={!isPreviewShown}>
-          {nextElements[activeNextElementIndex].map((row, i) => (
+          {nextFigures[activeNextFigureIndex].map((row, i) => (
             <Row key={`${i}row`}>
               {row.map((el, j) => (
                 <NextElement key={`${j}element`} isFilled={!!el} />
@@ -240,19 +247,19 @@ export const Field = (): React.ReactElement => {
       )}
 
       <NextElements>
-        {nextElements.map((elementContainer, elementContainerIndex) => (
+        {nextFigures.map((figure, figureContainerIndex) => (
           <NextElementContainer
-            key={`${elementContainerIndex}nextElementContainer`}
-            onClick={() => handleNextElementSelect(elementContainerIndex)}
+            key={`${figureContainerIndex}nextFigureContainer`}
+            onClick={() => handleNextElementSelect(figureContainerIndex)}
           >
-            {elementContainer.map((row, elementI) => (
+            {figure.map((row, elementI) => (
               <Row key={`${elementI}row`}>
                 {row.map((el, j) => (
                   <NextElement
                     key={`${j}element`}
                     isFilled={!!el}
-                    isActive={activeNextElementIndex === elementContainerIndex}
-                    isDisabled={usedElements.some((el) => el === elementContainerIndex)}
+                    isActive={activeNextFigureIndex === figureContainerIndex}
+                    isDisabled={usedFigures.some((el) => el === figureContainerIndex)}
                   />
                 ))}
               </Row>
@@ -260,6 +267,7 @@ export const Field = (): React.ReactElement => {
           </NextElementContainer>
         ))}
       </NextElements>
+      <h1>{score}</h1>
     </GameContainer>
   )
 }
