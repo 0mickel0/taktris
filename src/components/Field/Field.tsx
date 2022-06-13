@@ -1,23 +1,25 @@
 import React from 'react'
 
 import {
-  GameContainer,
-  Row,
-  FieldContainer,
   Element,
-  NextElement,
+  FieldContainer,
+  FigureContainer,
+  FigureElement,
+  GameContainer,
+  GameOverContainer,
+  NextFigures,
   Preview,
-  NextElements,
-  NextElementContainer,
+  PreviewElement,
+  Row,
 } from './styles'
 import {
-  NEXT_ELEMENTS_ARR,
-  INDEX_DIVIDER,
-  FIELD_SIZE,
-  NEW_ELEMENTS_AMOUNT,
-  FIELD_HOVERED_VALUE,
-  FIELD_FILLED_VALUE,
   FIELD_EMPTY_VALUE,
+  FIELD_FILLED_VALUE,
+  FIELD_HOVERED_VALUE,
+  FIELD_SIZE,
+  INDEX_DIVIDER,
+  NEW_ELEMENTS_AMOUNT,
+  NEXT_ELEMENTS_ARR,
 } from './constants'
 
 export const Field = (): React.ReactElement => {
@@ -54,6 +56,7 @@ export const Field = (): React.ReactElement => {
   const resetGame = (): void => {
     setField(deepClone(initField))
     initNewNextFigures()
+    setIsGameEnd(false)
   }
 
   const getElementPoints = (figure: number[][]): number =>
@@ -205,69 +208,71 @@ export const Field = (): React.ReactElement => {
   }
 
   return (
-    <GameContainer onMouseMove={handleMouseMove}>
+    <React.Fragment>
       {isGameEnd && (
-        <div>
+        <GameOverContainer>
           <h1>GAME OVER</h1> <span onClick={resetGame}>start new</span>
-        </div>
+        </GameOverContainer>
       )}
-
-      <FieldContainer>
-        <div
-          onMouseOut={handleMouseOut}
-          onMouseLeave={() => setPreviewShown(false)}
-          onMouseEnter={() => setPreviewShown(true)}
-        >
-          {field.map((row, i) => (
-            <Row key={`${i}row`}>
-              {row.map((el, j) => (
-                <Element
-                  key={`${j}element`}
-                  isFilled={el === FIELD_FILLED_VALUE}
-                  isAvailable={supposedField[i][j] === FIELD_HOVERED_VALUE}
-                  onMouseOver={() => checkIsAvailable(i, j)}
-                  onClick={handleItemClick}
-                />
-              ))}
-            </Row>
-          ))}
-        </div>
-      </FieldContainer>
-
-      {nextFigures[activeNextFigureIndex] && (
-        <Preview left={x} top={y} ref={currentRef} isHidden={!isPreviewShown}>
-          {nextFigures[activeNextFigureIndex].map((row, i) => (
-            <Row key={`${i}row`}>
-              {row.map((el, j) => (
-                <NextElement key={`${j}element`} isFilled={!!el} />
-              ))}
-            </Row>
-          ))}
-        </Preview>
-      )}
-
-      <NextElements>
-        {nextFigures.map((figure, figureContainerIndex) => (
-          <NextElementContainer
-            key={`${figureContainerIndex}nextFigureContainer`}
-            onClick={() => handleNextElementSelect(figureContainerIndex)}
+      <GameContainer onMouseMove={handleMouseMove}>
+        <FieldContainer>
+          <div
+            onMouseOut={handleMouseOut}
+            onMouseLeave={() => setPreviewShown(false)}
+            onMouseEnter={() => setPreviewShown(true)}
           >
-            {figure.map((row, elementI) => (
-              <Row key={`${elementI}row`}>
+            {field.map((row, i) => (
+              <Row key={`${i}row`}>
                 {row.map((el, j) => (
-                  <NextElement
+                  <Element
                     key={`${j}element`}
-                    isFilled={!!el}
-                    isActive={activeNextFigureIndex === figureContainerIndex}
-                    isDisabled={usedFigures.some((el) => el === figureContainerIndex)}
+                    isFilled={el === FIELD_FILLED_VALUE}
+                    isAvailable={supposedField[i][j] === FIELD_HOVERED_VALUE}
+                    onMouseOver={() => checkIsAvailable(i, j)}
+                    onClick={handleItemClick}
                   />
                 ))}
               </Row>
             ))}
-          </NextElementContainer>
-        ))}
-      </NextElements>
-      <h1>{score}</h1>
-    </GameContainer>
+          </div>
+        </FieldContainer>
+
+        {nextFigures[activeNextFigureIndex] && (
+          <Preview left={x} top={y} ref={currentRef} isHidden={!isPreviewShown}>
+            {nextFigures[activeNextFigureIndex].map((row, i) => (
+              <Row key={`${i}row`}>
+                {row.map((el, j) => (
+                  <PreviewElement key={`${j}element`} isFilled={!!el} />
+                ))}
+              </Row>
+            ))}
+          </Preview>
+        )}
+
+        <NextFigures>
+          {nextFigures.map((figure, containerI) => (
+            <FigureContainer
+              key={`${containerI}nextFigureContainer`}
+              onClick={() => handleNextElementSelect(containerI)}
+              isDisabled={usedFigures.some((el) => el === containerI)}
+            >
+              {figure.map((row, figureI) => (
+                <Row key={`${figureI}row`}>
+                  {row.map((el, j) => (
+                    <FigureElement
+                      key={`${j}element`}
+                      isFilled={!!el}
+                      isActive={activeNextFigureIndex === containerI}
+                      isDisabled={usedFigures.some((el) => el === containerI)}
+                    />
+                  ))}
+                </Row>
+              ))}
+            </FigureContainer>
+          ))}
+        </NextFigures>
+        <h1>{score}</h1>
+      </GameContainer>
+    </React.Fragment>
   )
 }
