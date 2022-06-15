@@ -1,6 +1,6 @@
 import styled, { css } from 'styled-components'
 
-interface IElementStyleProps {
+interface IFigureStyleProps {
   isAvailable?: boolean
   isFilled: boolean
   isActive?: boolean
@@ -8,8 +8,6 @@ interface IElementStyleProps {
 }
 
 interface IPreview {
-  top: number
-  left: number
   isHidden: boolean
 }
 
@@ -41,19 +39,19 @@ export const GameOverContainer = styled.div`
   background-color: #000000d9;
 `
 
-export const Element = styled.div<IElementStyleProps>`
+export const Element = styled.div<IFigureStyleProps>`
   ${sharedElement};
-  border: 2px solid #0c0d13;
+  border: 1px solid #0c0d13;
   background-color: ${({ isFilled, isAvailable }) =>
     isFilled ? '#738bbb' : isAvailable ? '#ff79ad' : '#fbfdff'};
 `
 
-export const PreviewElement = styled.div<IElementStyleProps>`
+export const PreviewElement = styled.div<IFigureStyleProps>`
   ${sharedElement};
   background-color: ${({ isFilled }) => (isFilled ? '#738bbb' : '#fbfdff00')};
 `
 
-export const FigureElement = styled.div<IElementStyleProps>`
+export const FigureElement = styled.div<IFigureStyleProps>`
   ${sharedElement};
   background-color: ${({ isFilled, isActive, isDisabled }) =>
     isDisabled && isFilled
@@ -75,8 +73,6 @@ export const Row = styled.div`
 
 export const Preview = styled.div<IPreview>`
   position: absolute;
-  top: ${({ top }) => `${top - 3}px`};
-  left: ${({ left }) => `${left + 3}px`};
   opacity: ${({ isHidden }) => (isHidden ? '0' : '0.8')};
 `
 

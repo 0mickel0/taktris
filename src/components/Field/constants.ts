@@ -1,6 +1,6 @@
 export const FIELD_EMPTY_VALUE = 0
 export const FIELD_FILLED_VALUE = 1
-export const FIELD_HOVERED_VALUE = 2
+export const FIELD_HOVERED_VALUE = -1
 export const INDEX_DIVIDER = '-'
 export const FIELD_SIZE = 9
 export const NEW_ELEMENTS_AMOUNT = 3

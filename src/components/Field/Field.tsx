@@ -21,28 +21,36 @@ import {
   NEW_ELEMENTS_AMOUNT,
   NEXT_ELEMENTS_ARR,
 } from './constants'
+import useLocalStorage from '../../data/hooks/useLocalStorage'
 
 export const Field = (): React.ReactElement => {
   const deepClone = (arr: number[][]): number[][] => JSON.parse(JSON.stringify(arr))
-  const initField = Array.from({ length: FIELD_SIZE }, () =>
+  const getEmptyField = Array.from({ length: FIELD_SIZE }, () =>
     Array.from({ length: FIELD_SIZE }, () => FIELD_EMPTY_VALUE),
   )
+  const randomNextFigures = NEXT_ELEMENTS_ARR.sort(() => 0.5 - Math.random()).slice(
+    0,
+    NEW_ELEMENTS_AMOUNT,
+  )
 
-  const [field, setField] = React.useState<number[][]>([])
-  const [supposedField, setSupposedField] = React.useState<number[][]>(deepClone(initField))
+  const [score, setScore] = useLocalStorage('gameScore', 0)
+  const [field, setField] = useLocalStorage<number[][]>('gameField', getEmptyField)
+  const [isGameEnd, setIsGameEnd] = useLocalStorage('gameIsEnd', false)
+  const [nextFigures, setNextFigures] = useLocalStorage<number[][][]>(
+    'gameNextFigures',
+    randomNextFigures,
+  )
+  const [activeNextFigureIndex, setActiveNextFigureIndex] = useLocalStorage(
+    'gameActiveNextFigureIndex',
+    0,
+  )
+  const [usedFigures, setUsedFigures] = useLocalStorage<number[]>('gameUsedFigures', [])
+
   const [isPreviewShown, setPreviewShown] = React.useState(false)
-  const [score, setScore] = React.useState(0)
-  const [isGameEnd, setIsGameEnd] = React.useState(false)
-  const [nextFigures, setNextFigures] = React.useState<number[][][]>([])
-  const [activeNextFigureIndex, setActiveNextFigureIndex] = React.useState(0)
-  const [usedFigures, setUsedFigures] = React.useState<number[]>([])
+  const [supposedField, setSupposedField] = React.useState<number[][]>(deepClone(getEmptyField))
   const [x, setX] = React.useState(0)
   const [y, setY] = React.useState(0)
   const currentRef = React.useRef<HTMLDivElement>(null)
-
-  React.useEffect(() => {
-    resetGame()
-  }, [])
 
   React.useEffect(() => {
     setIsGameEnd(checkIsGameEnd())
@@ -54,7 +62,8 @@ export const Field = (): React.ReactElement => {
   }, [usedFigures])
 
   const resetGame = (): void => {
-    setField(deepClone(initField))
+    setScore(0)
+    setField(deepClone(getEmptyField))
     initNewNextFigures()
     setIsGameEnd(false)
   }
@@ -92,10 +101,6 @@ export const Field = (): React.ReactElement => {
   }
 
   const initNewNextFigures = (): void => {
-    const randomNextFigures = NEXT_ELEMENTS_ARR.sort(() => 0.5 - Math.random()).slice(
-      0,
-      NEW_ELEMENTS_AMOUNT,
-    )
     setNextFigures(randomNextFigures)
     setUsedFigures([])
   }
@@ -136,7 +141,7 @@ export const Field = (): React.ReactElement => {
       const newSupposed = deepClone(field)
       indexesForHover.map((index) => {
         const [i, j] = index.split(INDEX_DIVIDER)
-        newSupposed[Number(i)][Number(j)] = 2
+        newSupposed[Number(i)][Number(j)] = FIELD_HOVERED_VALUE
       })
       setSupposedField(deepClone(newSupposed))
     } else {
@@ -230,7 +235,10 @@ export const Field = (): React.ReactElement => {
                     isAvailable={supposedField[i][j] === FIELD_HOVERED_VALUE}
                     onMouseOver={() => checkIsAvailable(i, j)}
                     onClick={handleItemClick}
-                  />
+                  >
+                    {i}
+                    {j}
+                  </Element>
                 ))}
               </Row>
             ))}
@@ -238,7 +246,7 @@ export const Field = (): React.ReactElement => {
         </FieldContainer>
 
         {nextFigures[activeNextFigureIndex] && (
-          <Preview left={x} top={y} ref={currentRef} isHidden={!isPreviewShown}>
+          <Preview ref={currentRef} isHidden={!isPreviewShown} style={{ top: y - 3, left: x + 3 }}>
             {nextFigures[activeNextFigureIndex].map((row, i) => (
               <Row key={`${i}row`}>
                 {row.map((el, j) => (
@@ -272,6 +280,7 @@ export const Field = (): React.ReactElement => {
           ))}
         </NextFigures>
         <h1>{score}</h1>
+        <h1 onClick={resetGame}>reset</h1>
       </GameContainer>
     </React.Fragment>
   )
