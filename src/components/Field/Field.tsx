@@ -2,6 +2,7 @@ import React from 'react'
 
 import {
   Element,
+  FieldBorder,
   FieldContainer,
   FigureContainer,
   FigureElement,
@@ -13,6 +14,7 @@ import {
   Row,
 } from './styles'
 import {
+  EMPTY_FIELD,
   FIELD_EMPTY_VALUE,
   FIELD_FILLED_VALUE,
   FIELD_HOVERED_VALUE,
@@ -20,21 +22,20 @@ import {
   INDEX_DIVIDER,
   NEW_ELEMENTS_AMOUNT,
   NEXT_ELEMENTS_ARR,
+  SQUARES_COUNT,
 } from './constants'
 import useLocalStorage from '../../data/hooks/useLocalStorage'
+import { generateSquaresField } from '../../data/services'
 
 export const Field = (): React.ReactElement => {
   const deepClone = (arr: number[][]): number[][] => JSON.parse(JSON.stringify(arr))
-  const getEmptyField = Array.from({ length: FIELD_SIZE }, () =>
-    Array.from({ length: FIELD_SIZE }, () => FIELD_EMPTY_VALUE),
-  )
   const randomNextFigures = NEXT_ELEMENTS_ARR.sort(() => 0.5 - Math.random()).slice(
     0,
     NEW_ELEMENTS_AMOUNT,
   )
-
+  const SQUARES_FIELD = generateSquaresField()
   const [score, setScore] = useLocalStorage('gameScore', 0)
-  const [field, setField] = useLocalStorage<number[][]>('gameField', getEmptyField)
+  const [field, setField] = useLocalStorage<number[][]>('gameField', EMPTY_FIELD)
   const [isGameEnd, setIsGameEnd] = useLocalStorage('gameIsEnd', false)
   const [nextFigures, setNextFigures] = useLocalStorage<number[][][]>(
     'gameNextFigures',
@@ -45,9 +46,8 @@ export const Field = (): React.ReactElement => {
     0,
   )
   const [usedFigures, setUsedFigures] = useLocalStorage<number[]>('gameUsedFigures', [])
-
   const [isPreviewShown, setPreviewShown] = React.useState(false)
-  const [supposedField, setSupposedField] = React.useState<number[][]>(deepClone(getEmptyField))
+  const [supposedField, setSupposedField] = React.useState<number[][]>(deepClone(EMPTY_FIELD))
   const [x, setX] = React.useState(0)
   const [y, setY] = React.useState(0)
   const currentRef = React.useRef<HTMLDivElement>(null)
@@ -63,7 +63,7 @@ export const Field = (): React.ReactElement => {
 
   const resetGame = (): void => {
     setScore(0)
-    setField(deepClone(getEmptyField))
+    setField(deepClone(EMPTY_FIELD))
     initNewNextFigures()
     setIsGameEnd(false)
   }
@@ -159,6 +159,25 @@ export const Field = (): React.ReactElement => {
     return rows
   }
 
+  const getClearableSquares = (arr: number[][]): number[] => {
+    const elements = Array.from({ length: SQUARES_COUNT }, () => true)
+    SQUARES_FIELD.map((row, squareIndex) => {
+      let squareFilled = true
+      row.map((index) => {
+        const [i, j] = index.split(INDEX_DIVIDER)
+        if (arr[Number(i)][Number(j)] === FIELD_EMPTY_VALUE) {
+          squareFilled = false
+        }
+      })
+      elements[squareIndex] = squareFilled
+    })
+
+    return elements.reduce<number[]>(function (acc, el, i) {
+      if (el) acc.push(i)
+      return acc
+    }, [])
+  }
+
   const handleItemClick = (): void => {
     if (supposedField.some((el) => el.some((el) => el === FIELD_HOVERED_VALUE))) {
       let newPoints = getElementPoints(nextFigures[activeNextFigureIndex])
@@ -171,6 +190,7 @@ export const Field = (): React.ReactElement => {
         }
       }
 
+      const squares = getClearableSquares(newField)
       const rows = getClearableRows(newField)
       const cols = getClearableRows(
         newField[0].map((val, index) => newField.map((row) => row[index]).reverse()),
@@ -187,8 +207,17 @@ export const Field = (): React.ReactElement => {
           }
         }
       }
+      if (squares.length) {
+        squares.map((square) => {
+          SQUARES_FIELD[square].map((index) => {
+            const [i, j] = index.split(INDEX_DIVIDER)
+            newField[Number(i)][Number(j)] = FIELD_EMPTY_VALUE
+          })
+        })
+      }
       newPoints += rows.length * FIELD_SIZE
       newPoints += cols.length * FIELD_SIZE
+      newPoints += squares.length * FIELD_SIZE
       setScore(newPoints + score)
       setSupposedField(deepClone(newField))
       setUsedFigures([...usedFigures, activeNextFigureIndex])
@@ -200,7 +229,7 @@ export const Field = (): React.ReactElement => {
     setSupposedField(deepClone(field))
   }
 
-  const handleMouseMove = (e: any): void => {
+  const handleMouseMove = (e: React.MouseEvent<HTMLElement>): void => {
     setX(e.clientX)
     setY(e.clientY - (currentRef?.current?.clientHeight || 0))
   }
@@ -216,12 +245,12 @@ export const Field = (): React.ReactElement => {
     <React.Fragment>
       {isGameEnd && (
         <GameOverContainer>
-          <h1>GAME OVER</h1> <span onClick={resetGame}>start new</span>
+          <span>GAME OVER</span> <span onClick={resetGame}>start new</span>
         </GameOverContainer>
       )}
       <GameContainer onMouseMove={handleMouseMove}>
         <FieldContainer>
-          <div
+          <FieldBorder
             onMouseOut={handleMouseOut}
             onMouseLeave={() => setPreviewShown(false)}
             onMouseEnter={() => setPreviewShown(true)}
@@ -235,14 +264,11 @@ export const Field = (): React.ReactElement => {
                     isAvailable={supposedField[i][j] === FIELD_HOVERED_VALUE}
                     onMouseOver={() => checkIsAvailable(i, j)}
                     onClick={handleItemClick}
-                  >
-                    {i}
-                    {j}
-                  </Element>
+                  />
                 ))}
               </Row>
             ))}
-          </div>
+          </FieldBorder>
         </FieldContainer>
 
         {nextFigures[activeNextFigureIndex] && (

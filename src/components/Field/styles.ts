@@ -33,10 +33,15 @@ export const GameContainer = styled.div`
 
 export const GameOverContainer = styled.div`
   ${centeredFlex};
+  flex-direction: column;
   position: absolute;
   width: 100%;
   height: 100%;
-  background-color: #000000d9;
+  background-color: #aea3a3c7;
+  color: #776e65;
+  font-size: 60px;
+  font-weight: 700;
+  animation: fade-in 800ms ease 1200ms;
 `
 
 export const Element = styled.div<IFigureStyleProps>`
@@ -44,6 +49,7 @@ export const Element = styled.div<IFigureStyleProps>`
   border: 1px solid #0c0d13;
   background-color: ${({ isFilled, isAvailable }) =>
     isFilled ? '#738bbb' : isAvailable ? '#ff79ad' : '#fbfdff'};
+  box-shadow: ${({ isFilled, isAvailable }) => (isFilled || isAvailable) && 'none !important'};
 `
 
 export const PreviewElement = styled.div<IFigureStyleProps>`
@@ -63,12 +69,37 @@ export const FigureElement = styled.div<IFigureStyleProps>`
       : '#fbfdff00'};
 `
 
-export const FieldContainer = styled.div`
+export const Row = styled.div`
   ${centeredFlex};
 `
 
-export const Row = styled.div`
+export const FieldContainer = styled.div<Partial<IFigureStyleProps>>`
   ${centeredFlex};
+
+  & ${Row}:nth-child(6n),
+  ${Row}:nth-child(6n-1),
+  ${Row}:nth-child(6n-2) {
+    & ${Element}:nth-child(6n),
+    ${Element}:nth-child(6n-1),
+    ${Element}:nth-child(6n-2) {
+      box-shadow: ${({ isFilled, isAvailable }) =>
+        isFilled || isAvailable ? 'none' : '0 0 40px 40px rgb(72 72 72 / 20%) inset'};
+    }
+  }
+  & ${Row}:nth-child(6n-3),
+  ${Row}:nth-child(6n-4),
+  ${Row}:nth-child(6n-5) {
+    & ${Element}:nth-child(6n-3),
+    ${Element}:nth-child(6n-4),
+    ${Element}:nth-child(6n-5) {
+      box-shadow: ${({ isFilled, isAvailable }) =>
+        isFilled || isAvailable ? 'none' : '0 0 40px 40px rgb(72 72 72 / 20%) inset'};
+    }
+  }
+`
+
+export const FieldBorder = styled.div`
+  border: 1px solid #0c0d13;
 `
 
 export const Preview = styled.div<IPreview>`
@@ -85,25 +116,4 @@ export const FigureContainer = styled.div<IFigureContainer>`
   display: block;
   margin: 0 20px;
   cursor: ${({ isDisabled }) => (isDisabled ? 'cursor' : 'pointer')};
-`
-const test = styled.div`
-  background-image: linear-gradient(
-    330deg,
-    hsl(0deg 0% 0%) 0%,
-    hsl(21deg 100% 9%) 7%,
-    hsl(32deg 100% 13%) 13%,
-    hsl(33deg 72% 19%) 20%,
-    hsl(31deg 54% 27%) 27%,
-    hsl(31deg 43% 35%) 33%,
-    hsl(36deg 38% 34%) 40%,
-    hsl(42deg 32% 34%) 47%,
-    hsl(49deg 25% 34%) 53%,
-    hsl(59deg 18% 34%) 60%,
-    hsl(72deg 14% 36%) 67%,
-    hsl(79deg 13% 33%) 73%,
-    hsl(86deg 12% 29%) 80%,
-    hsl(94deg 11% 25%) 87%,
-    hsl(103deg 10% 22%) 93%,
-    hsl(113deg 9% 18%) 100%
-  );
 `
