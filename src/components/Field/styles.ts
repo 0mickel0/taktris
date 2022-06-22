@@ -27,18 +27,23 @@ const sharedElement = css`
   height: 40px;
 `
 
+export const Wrapper = styled.div`
+  color: ${({ theme }) => theme.colors.font};
+`
+
 export const GameContainer = styled.div`
   padding: 20px;
+  flex-direction: row;
 `
 
 export const GameOverContainer = styled.div`
   ${centeredFlex};
   flex-direction: column;
-  position: absolute;
+  position: fixed;
+  top: 0;
   width: 100%;
   height: 100%;
-  background-color: #aea3a3c7;
-  color: #776e65;
+  background-color: ${({ theme }) => theme.colors.bgGameOver};
   font-size: 60px;
   font-weight: 700;
   animation: fade-in 800ms ease 1200ms;
@@ -46,35 +51,64 @@ export const GameOverContainer = styled.div`
 
 export const Element = styled.div<IFigureStyleProps>`
   ${sharedElement};
-  border: 1px solid #0c0d13;
-  background-color: ${({ isFilled, isAvailable }) =>
-    isFilled ? '#738bbb' : isAvailable ? '#ff79ad' : '#fbfdff'};
+  border: 1px solid
+    ${({ isFilled, theme }) => (isFilled ? theme.colors.elementBorder : theme.colors.border)};
+  background-color: ${({ isFilled, isAvailable, theme }) =>
+    isFilled
+      ? theme.colors.element
+      : isAvailable
+      ? theme.colors.elementAvailable
+      : theme.colors.transparent};
   box-shadow: ${({ isFilled, isAvailable }) => (isFilled || isAvailable) && 'none !important'};
 `
 
 export const PreviewElement = styled.div<IFigureStyleProps>`
   ${sharedElement};
-  background-color: ${({ isFilled }) => (isFilled ? '#738bbb' : '#fbfdff00')};
+  background-color: ${({ isFilled, theme }) =>
+    isFilled ? theme.colors.elementSecond : theme.colors.transparent};
 `
 
 export const FigureElement = styled.div<IFigureStyleProps>`
   ${sharedElement};
-  background-color: ${({ isFilled, isActive, isDisabled }) =>
+  background-color: ${({ isFilled, isActive, isDisabled, theme }) =>
     isDisabled && isFilled
-      ? '#8590a4d4'
+      ? theme.colors.shadow
       : isActive && isFilled
-      ? '#ff79ad'
+      ? theme.colors.element
       : isFilled
-      ? '#738bbb'
-      : '#fbfdff00'};
+      ? theme.colors.elementHover
+      : theme.colors.transparent};
 `
 
 export const Row = styled.div`
   ${centeredFlex};
 `
 
+export const Controls = styled.div`
+  ${centeredFlex};
+  flex-direction: column;
+`
+
 export const FieldContainer = styled.div<Partial<IFigureStyleProps>>`
   ${centeredFlex};
+
+  & ${Element}:first-child {
+    border-left: 4px ${({ theme }) => theme.colors.border} solid;
+  }
+
+  & ${Row}:first-child {
+    border-top: 4px ${({ theme }) => theme.colors.border} solid;
+  }
+
+  & ${Row}:nth-child(6n),
+  ${Row}:nth-child(6n-3) {
+    border-bottom: 4px ${({ theme }) => theme.colors.border} solid;
+  }
+
+  & ${Element}:nth-child(6n),
+  ${Element}:nth-child(6n-3) {
+    border-right: 4px ${({ theme }) => theme.colors.border} solid;
+  }
 
   & ${Row}:nth-child(6n),
   ${Row}:nth-child(6n-1),
@@ -82,24 +116,26 @@ export const FieldContainer = styled.div<Partial<IFigureStyleProps>>`
     & ${Element}:nth-child(6n),
     ${Element}:nth-child(6n-1),
     ${Element}:nth-child(6n-2) {
-      box-shadow: ${({ isFilled, isAvailable }) =>
-        isFilled || isAvailable ? 'none' : '0 0 40px 40px rgb(72 72 72 / 20%) inset'};
+      box-shadow: ${({ isFilled, isAvailable, theme }) =>
+        isFilled || isAvailable ? 'none' : `0 0 40px 40px ${theme.colors.shadow} inset`};
     }
   }
+
   & ${Row}:nth-child(6n-3),
   ${Row}:nth-child(6n-4),
   ${Row}:nth-child(6n-5) {
     & ${Element}:nth-child(6n-3),
     ${Element}:nth-child(6n-4),
     ${Element}:nth-child(6n-5) {
-      box-shadow: ${({ isFilled, isAvailable }) =>
-        isFilled || isAvailable ? 'none' : '0 0 40px 40px rgb(72 72 72 / 20%) inset'};
+      box-shadow: ${({ isFilled, isAvailable, theme }) =>
+        isFilled || isAvailable ? 'none' : `0 0 40px 40px ${theme.colors.shadow} inset`};
     }
   }
 `
 
 export const FieldBorder = styled.div`
-  border: 1px solid #0c0d13;
+  border: 4px solid ${({ theme }) => theme.colors.border};
+  border-radius: 4px;
 `
 
 export const Preview = styled.div<IPreview>`

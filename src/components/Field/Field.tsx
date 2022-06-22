@@ -12,6 +12,8 @@ import {
   Preview,
   PreviewElement,
   Row,
+  Controls,
+  Wrapper,
 } from './styles'
 import {
   EMPTY_FIELD,
@@ -26,8 +28,9 @@ import {
 } from './constants'
 import useLocalStorage from '../../data/hooks/useLocalStorage'
 import { generateSquaresField } from '../../data/services'
+import { Score } from './components/Score'
 
-export const Field = (): React.ReactElement => {
+export const Field: React.FC = () => {
   const deepClone = (arr: number[][]): number[][] => JSON.parse(JSON.stringify(arr))
   const randomNextFigures = NEXT_ELEMENTS_ARR.sort(() => 0.5 - Math.random()).slice(
     0,
@@ -46,6 +49,7 @@ export const Field = (): React.ReactElement => {
     0,
   )
   const [usedFigures, setUsedFigures] = useLocalStorage<number[]>('gameUsedFigures', [])
+
   const [isPreviewShown, setPreviewShown] = React.useState(false)
   const [supposedField, setSupposedField] = React.useState<number[][]>(deepClone(EMPTY_FIELD))
   const [x, setX] = React.useState(0)
@@ -242,14 +246,14 @@ export const Field = (): React.ReactElement => {
   }
 
   return (
-    <React.Fragment>
+    <Wrapper>
       {isGameEnd && (
         <GameOverContainer>
           <span>GAME OVER</span> <span onClick={resetGame}>start new</span>
         </GameOverContainer>
       )}
-      <GameContainer onMouseMove={handleMouseMove}>
-        <FieldContainer>
+      <GameContainer>
+        <FieldContainer onMouseMove={handleMouseMove}>
           <FieldBorder
             onMouseOut={handleMouseOut}
             onMouseLeave={() => setPreviewShown(false)}
@@ -271,43 +275,44 @@ export const Field = (): React.ReactElement => {
           </FieldBorder>
         </FieldContainer>
 
-        {nextFigures[activeNextFigureIndex] && (
-          <Preview ref={currentRef} isHidden={!isPreviewShown} style={{ top: y - 3, left: x + 3 }}>
-            {nextFigures[activeNextFigureIndex].map((row, i) => (
-              <Row key={`${i}row`}>
-                {row.map((el, j) => (
-                  <PreviewElement key={`${j}element`} isFilled={!!el} />
+        <Controls>
+          <NextFigures>
+            {nextFigures.map((figure, containerI) => (
+              <FigureContainer
+                key={`${containerI}nextFigureContainer`}
+                onClick={() => handleNextElementSelect(containerI)}
+                isDisabled={usedFigures.some((el) => el === containerI)}
+              >
+                {figure.map((row, figureI) => (
+                  <Row key={`${figureI}row`}>
+                    {row.map((el, j) => (
+                      <FigureElement
+                        key={`${j}element`}
+                        isFilled={!!el}
+                        isActive={activeNextFigureIndex === containerI}
+                        isDisabled={usedFigures.some((el) => el === containerI)}
+                      />
+                    ))}
+                  </Row>
                 ))}
-              </Row>
+              </FigureContainer>
             ))}
-          </Preview>
-        )}
-
-        <NextFigures>
-          {nextFigures.map((figure, containerI) => (
-            <FigureContainer
-              key={`${containerI}nextFigureContainer`}
-              onClick={() => handleNextElementSelect(containerI)}
-              isDisabled={usedFigures.some((el) => el === containerI)}
-            >
-              {figure.map((row, figureI) => (
-                <Row key={`${figureI}row`}>
-                  {row.map((el, j) => (
-                    <FigureElement
-                      key={`${j}element`}
-                      isFilled={!!el}
-                      isActive={activeNextFigureIndex === containerI}
-                      isDisabled={usedFigures.some((el) => el === containerI)}
-                    />
-                  ))}
-                </Row>
-              ))}
-            </FigureContainer>
-          ))}
-        </NextFigures>
-        <h1>{score}</h1>
-        <h1 onClick={resetGame}>reset</h1>
+          </NextFigures>
+          <Score score={score} onReset={resetGame} />
+        </Controls>
       </GameContainer>
-    </React.Fragment>
+
+      {nextFigures[activeNextFigureIndex] && (
+        <Preview ref={currentRef} isHidden={!isPreviewShown} style={{ top: y - 3, left: x + 3 }}>
+          {nextFigures[activeNextFigureIndex].map((row, i) => (
+            <Row key={`${i}row`}>
+              {row.map((el, j) => (
+                <PreviewElement key={`${j}element`} isFilled={!!el} />
+              ))}
+            </Row>
+          ))}
+        </Preview>
+      )}
+    </Wrapper>
   )
 }
