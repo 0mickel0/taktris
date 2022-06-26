@@ -2,6 +2,7 @@ import React from 'react'
 
 import {
   Element,
+  Button,
   FieldBorder,
   FieldContainer,
   FigureContainer,
@@ -14,6 +15,7 @@ import {
   Row,
   Controls,
   Wrapper,
+  Title,
 } from './styles'
 import {
   EMPTY_FIELD,
@@ -29,6 +31,7 @@ import {
 import useLocalStorage from '../../data/hooks/useLocalStorage'
 import { generateSquaresField } from '../../data/services'
 import { Score } from './components/Score'
+import { MouseMovingElement } from './components/MouseMovingElement'
 
 export const Field: React.FC = () => {
   const deepClone = (arr: number[][]): number[][] => JSON.parse(JSON.stringify(arr))
@@ -38,6 +41,7 @@ export const Field: React.FC = () => {
   )
   const SQUARES_FIELD = generateSquaresField()
   const [score, setScore] = useLocalStorage('gameScore', 0)
+  const [bestScore, setBestScore] = useLocalStorage('gameBestScore', 0)
   const [field, setField] = useLocalStorage<number[][]>('gameField', EMPTY_FIELD)
   const [isGameEnd, setIsGameEnd] = useLocalStorage('gameIsEnd', false)
   const [nextFigures, setNextFigures] = useLocalStorage<number[][][]>(
@@ -50,7 +54,7 @@ export const Field: React.FC = () => {
   )
   const [usedFigures, setUsedFigures] = useLocalStorage<number[]>('gameUsedFigures', [])
 
-  const [isPreviewShown, setPreviewShown] = React.useState(false)
+  const [isPreviewShown, setPreviewShown] = React.useState(true)
   const [supposedField, setSupposedField] = React.useState<number[][]>(deepClone(EMPTY_FIELD))
   const [x, setX] = React.useState(0)
   const [y, setY] = React.useState(0)
@@ -64,6 +68,12 @@ export const Field: React.FC = () => {
       setActiveNextFigureIndex(getNextFigureIndex())
     }
   }, [usedFigures])
+
+  React.useEffect(() => {
+    if (score > bestScore) {
+      setBestScore(score)
+    }
+  }, [score])
 
   const resetGame = (): void => {
     setScore(0)
@@ -245,15 +255,22 @@ export const Field: React.FC = () => {
     setActiveNextFigureIndex(index)
   }
 
+  const handleMouseLeave = (e: React.MouseEvent<HTMLDivElement>): void => {
+    console.log(e.relatedTarget, currentRef)
+    console.log(e.relatedTarget === currentRef.current)
+  }
+
   return (
-    <Wrapper>
+    <Wrapper onMouseMove={handleMouseMove}>
       {isGameEnd && (
         <GameOverContainer>
-          <span>GAME OVER</span> <span onClick={resetGame}>start new</span>
+          <Title>Game over</Title>
+          <Button onClick={resetGame}>Try again</Button>
         </GameOverContainer>
       )}
+      <Score score={score} bestScore={bestScore} onReset={resetGame} />
       <GameContainer>
-        <FieldContainer onMouseMove={handleMouseMove}>
+        <FieldContainer>
           <FieldBorder
             onMouseOut={handleMouseOut}
             onMouseLeave={() => setPreviewShown(false)}
@@ -298,7 +315,6 @@ export const Field: React.FC = () => {
               </FigureContainer>
             ))}
           </NextFigures>
-          <Score score={score} onReset={resetGame} />
         </Controls>
       </GameContainer>
 

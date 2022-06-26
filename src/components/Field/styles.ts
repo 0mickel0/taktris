@@ -27,13 +27,74 @@ const sharedElement = css`
   height: 40px;
 `
 
+export const Value = styled.a`
+  color: ${({ theme }) => theme.colors.fontSecond};
+  font-weight: 700;
+  border-radius: 3px;
+  cursor: default;
+  height: 25px;
+  text-align: center;
+  position: relative;
+  font-size: 25px;
+  padding: 15px 25px 0 25px;
+  background-color: ${({ theme }) => theme.colors.elementSecond};
+
+  & span {
+    position: absolute;
+    width: 100%;
+    top: 5px;
+    left: 0;
+    text-transform: uppercase;
+    font-size: 10px;
+    text-align: center;
+  }
+`
+
+export const Button = styled.a`
+  cursor: pointer;
+  background: ${({ theme }) => theme.colors.border};
+  border-radius: 3px;
+  padding: 0 20px;
+  text-decoration: none;
+  color: ${({ theme }) => theme.colors.fontSecond};
+  height: 40px;
+  line-height: 42px;
+  font-weight: 700;
+
+  :hover {
+    background-color: ${({ theme }) => theme.colors.borderSecond};
+  }
+`
+
 export const Wrapper = styled.div`
+  height: calc(100% - 40px);
+  padding: 20px;
   color: ${({ theme }) => theme.colors.font};
 `
 
 export const GameContainer = styled.div`
-  padding: 20px;
+  display: flex;
   flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: center;
+`
+
+export const Title = styled.p`
+  font-size: 45px;
+  font-weight: 700;
+`
+
+export const Header = styled.div`
+  ${centeredFlex};
+  margin-bottom: 20px;
+
+  & ${Value} {
+    margin-right: 20px;
+  }
+
+  & ${Button} {
+    margin-left: 30px;
+  }
 `
 
 export const GameOverContainer = styled.div`
@@ -44,9 +105,11 @@ export const GameOverContainer = styled.div`
   width: 100%;
   height: 100%;
   background-color: ${({ theme }) => theme.colors.bgGameOver};
-  font-size: 60px;
-  font-weight: 700;
   animation: fade-in 800ms ease 1200ms;
+
+  & ${Title} {
+    margin-bottom: 30px;
+  }
 `
 
 export const Element = styled.div<IFigureStyleProps>`
@@ -143,13 +206,28 @@ export const Preview = styled.div<IPreview>`
   opacity: ${({ isHidden }) => (isHidden ? '0' : '0.8')};
 `
 
-export const NextFigures = styled.div`
-  ${centeredFlex};
-  padding: 20px;
-`
-
 export const FigureContainer = styled.div<IFigureContainer>`
   display: block;
   margin: 0 20px;
   cursor: ${({ isDisabled }) => (isDisabled ? 'cursor' : 'pointer')};
+`
+
+export const NextFigures = styled.div`
+  ${centeredFlex};
+  padding: 20px;
+  flex-direction: column;
+  flex-wrap: wrap;
+  & ${FigureContainer} {
+    margin-bottom: 10px;
+  }
+  @media (min-width: 757px) {
+    width: 250px;
+    height: 400px;
+  }
+  @media (max-width: 757px) {
+    flex-direction: row;
+    & ${FigureContainer} {
+      margin-bottom: 0;
+    }
+  }
 `
