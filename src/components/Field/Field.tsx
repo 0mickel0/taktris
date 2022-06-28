@@ -53,7 +53,7 @@ export const Field: React.FC = () => {
   )
   const [usedFigures, setUsedFigures] = useLocalStorage<number[]>('gameUsedFigures', [])
 
-  const [isPreviewShown, setPreviewShown] = React.useState(true)
+  const [isPreviewShown, setPreviewShown] = React.useState(false)
   const [supposedField, setSupposedField] = React.useState<number[][]>(deepClone(EMPTY_FIELD))
   const [x, setX] = React.useState(0)
   const [y, setY] = React.useState(0)
