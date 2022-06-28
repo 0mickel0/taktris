@@ -254,11 +254,6 @@ export const Field: React.FC = () => {
     setActiveNextFigureIndex(index)
   }
 
-  const handleMouseLeave = (e: React.MouseEvent<HTMLDivElement>): void => {
-    console.log(e.relatedTarget, currentRef)
-    console.log(e.relatedTarget === currentRef.current)
-  }
-
   return (
     <Wrapper onMouseMove={handleMouseMove}>
       {isGameEnd && (
