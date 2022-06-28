@@ -7,7 +7,7 @@ type Setter<T> = React.Dispatch<React.SetStateAction<T | undefined>>
 type Options<T> = Partial<{
   serializer: Serializer<T>
   parser: Parser<T>
-  logger: (error: any) => void
+  logger: (error: string) => void
   syncData: boolean
 }>
 

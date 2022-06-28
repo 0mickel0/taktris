@@ -1,1 +1,0 @@
-export { MouseMovingElement } from './MouseMovingElement'

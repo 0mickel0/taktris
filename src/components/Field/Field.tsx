@@ -31,7 +31,6 @@ import {
 import useLocalStorage from '../../data/hooks/useLocalStorage'
 import { generateSquaresField } from '../../data/services'
 import { Score } from './components/Score'
-import { MouseMovingElement } from './components/MouseMovingElement'
 
 export const Field: React.FC = () => {
   const deepClone = (arr: number[][]): number[][] => JSON.parse(JSON.stringify(arr))
