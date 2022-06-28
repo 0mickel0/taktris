@@ -1,5 +1,7 @@
+
+<a href="https://meek-shortbread-13ef23.netlify.app/"><h1>TAKTRIS</h1></a>
+
 <div align="center">
-  <a href="https://meek-shortbread-13ef23.netlify.app/"><h1>TAKTRIS</h1></a>
   <br>
   <img src="./public/gameplay.gif" width="450px"/>
 </div>
