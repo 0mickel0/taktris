@@ -1,5 +1,5 @@
 
-<a href="https://meek-shortbread-13ef23.netlify.app/"><h1>TAKTRIS</h1></a>
+<a target="_blank" href="https://meek-shortbread-13ef23.netlify.app/"><h1>TAKTRIS</h1></a>
 
 <div align="center">
   <br>
